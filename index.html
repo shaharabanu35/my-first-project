@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StyleSense AI | Smart Mirror</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #fd79a8;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-strong: rgba(255, 255, 255, 0.2);
+            --border: rgba(255, 255, 255, 0.3);
+            --text: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background-attachment: fixed;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            padding: 40px 0;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            margin: 0;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.tagline {
+            font-weight: 300;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: var(--glass-strong);
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            margin-top: 0;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(108, 92, 231, 0.1);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        #preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results-area {
+            display: none;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .score-box {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px auto;
+            background: rgba(255,255,255,0.05);
+            position: relative;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            height: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        .feature-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+
+        .outfit-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.1);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
+
+        footer {
+            margin-top: auto;
+            padding: 30px;
+            text-align: center;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>StyleSense AI</h1>
+            <p class="tagline">SMART MIRROR ANALYSIS</p>
+        </header>
+
+        <main class="main-grid">
+            <section class="glass-card left-panel">
+                <h2>📸 Your Look</h2>
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div id="uploadText">
+                        <span style="font-size: 3rem;">📤</span>
+                        <p>Click to upload or drag & drop</p>
+                    </div>
+                    <img id="preview" alt="Preview">
+                </div>
+                <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+                <button id="analyzeBtn" class="btn" disabled onclick="startAnalysis()">✨ Analyze My Style</button>
+            </section>
+
+            <section class="glass-card right-panel">
+                <div id="instructions">
+                    <h2>🧠 Visual AI</h2>
+                    <p>Upload a photo of yourself or an outfit. Our AI will analyze your skin tone, body shape, and style to provide tailored advice.</p>
+                </div>
+
+                <div id="loading">
+                    <div class="spinner"></div>
+                    <p>Consulting the fashion oracle...</p>
+                </div>
+
+                <div id="results" class="results-area">
+                    <div class="score-box">
+                        <h3>Style Score</h3>
+                        <div class="score-circle" id="scoreValue">0</div>
+                        <div class="progress-container">
+                            <div id="progressBar" class="progress-bar"></div>
+                        </div>
+                        <p id="moodText" style="font-weight: 300; font-style: italic;"></p>
+                    </div>
+
+                    <div id="featuresList"></div>
+
+                    <h3 style="margin-top: 30px;">👗 Recommendations</h3>
+                    <div id="outfitIdeas"></div>
+
+                    <h3 style="margin-top: 30px;">💡 Why it Suits You</h3>
+                    <div class="glass-card" style="background: rgba(108, 92, 231, 0.1); padding: 15px;">
+                        <p id="suitText" style="margin: 0; font-size: 0.95rem; line-height: 1.6;"></p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Made with ❤️ by Team Zenvy | © 2026 Fashion Tech</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        function previewImage(event) {
+            const input = event.target;
+            const preview = document.getElementById('preview');
+            const uploadText = document.getElementById('uploadText');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    uploadText.style.display = 'none';
+                    analyzeBtn.disabled = false;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function startAnalysis() {
+            const fileInput = document.getElementById('fileInput');
+            const instructions = document.getElementById('instructions');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+
+            if (!fileInput.files[0]) return;
+
+            instructions.style.display = 'none';
+            results.style.display = 'none';
+            loading.style.display = 'block';
+            analyzeBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    loading.style.display = 'none';
+                    analyzeBtn.disabled = false;
+                    return;
+                }
+
+                displayResults(data);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Analysis failed. Check console.');
+                loading.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const scoreValue = document.getElementById('scoreValue');
+            const progressBar = document.getElementById('progressBar');
+            const moodText = document.getElementById('moodText');
+            const featuresList = document.getElementById('featuresList');
+            const outfitIdeas = document.getElementById('outfitIdeas');
+            const suitText = document.getElementById('suitText');
+
+            // Reset
+            featuresList.innerHTML = '';
+            outfitIdeas.innerHTML = '';
+
+            // Set Data
+            const score = data.style_score || 0;
+            moodText.innerText = data.mood_analysis || 'N/A';
+            suitText.innerText = data.why_it_suits || 'N/A';
+
+            // Features
+            for (const [key, value] of Object.entries(data.features || {})) {
+                featuresList.innerHTML += `<div class="feature-item"><span>${key}</span><strong>${value}</strong></div>`;
+            }
+
+            // Outfits
+            (data.outfit_ideas || []).forEach(idea => {
+                outfitIdeas.innerHTML += `<div class="outfit-card">${idea}</div>`;
+            });
+
+            // UI Transitions
+            loading.style.display = 'none';
+            results.style.display = 'block';
+
+            // Animations
+            setTimeout(() => {
+                let currentScore = 0;
+                const interval = setInterval(() => {
+                    if (currentScore >= score) {
+                        clearInterval(interval);
+                    } else {
+                        currentScore++;
+                        scoreValue.innerText = currentScore;
+                        progressBar.style.width = currentScore + '%';
+                    }
+                }, 20);
+
+                if (score > 80) {
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#6c5ce7', '#fd79a8', '#ffffff']
+                    });
+                }
+            }, 500);
+
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+    </script>
+</body>
+</html>

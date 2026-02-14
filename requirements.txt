@@ -1,0 +1,11 @@
+streamlit
+groq
+python-dotenv
+pytrends
+pandas
+requests
+Pillow
+streamlit-mic-recorder
+flask
+opencv-python
+werkzeug
